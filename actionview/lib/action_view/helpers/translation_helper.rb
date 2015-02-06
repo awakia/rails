@@ -69,6 +69,14 @@ module ActionView
           translate remaining_defaults.shift, options.merge(default: remaining_defaults)
         else
           raise e if raise_error
+          unless options[:throw]
+            case handler = options[:exception_handler] || I18n.exception_handler
+            when Symbol
+              send(handler, e, e.locale, e.key, e.options)
+            else
+              handler.call(e, e.locale, e.key, e.options)
+            end
+          end
 
           keys = I18n.normalize_keys(e.locale, e.key, e.options[:scope])
           content_tag('span', keys.last.to_s.titleize, :class => 'translation_missing', :title => "translation missing: #{keys.join('.')}")
